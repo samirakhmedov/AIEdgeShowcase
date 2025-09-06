@@ -9,10 +9,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -72,38 +77,92 @@ class MainActivity : ComponentActivity(), DownloadCallback {
 }
 
 @Composable
-fun Greeting(content: String, modifier: Modifier = Modifier, viewModel: MainViewModel) { // Принимаем ViewModel
-    var question by remember { mutableStateOf("") } // Используем remember для сохранения состояния
+fun Greeting(content: String, modifier: Modifier = Modifier, viewModel: MainViewModel) {
+    var question by remember { mutableStateOf("") }
+    val toolCalls by viewModel.toolCallsState.collectAsStateWithLifecycle()
+    val conversation by viewModel.conversationState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    LazyColumn(
+        modifier = modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.cat),
-            contentDescription = null,
-            modifier = Modifier.size(200.dp, 200.dp)
-        )
-        Text(
-            text = content,
-            textAlign = TextAlign.Center
-        )
-        TextField(
-            value = question, // Используем состояние question
-            onValueChange = { newText ->
-                question = newText // Обновляем состояние
-            },
-            label = { Text("Enter your question") },
-        )
-
-        Button(onClick = {
-            viewModel.askQuestion(question) // Вызываем метод ViewModel с текстом из поля ввода
-        }) {
-            Text("Ask Cat")
+        item {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.cat),
+                    contentDescription = null,
+                    modifier = Modifier.size(150.dp, 150.dp)
+                )
+                Text(
+                    text = content,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(8.dp)
+                )
+                TextField(
+                    value = question,
+                    onValueChange = { question = it },
+                    label = { Text("Enter your question") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { viewModel.askQuestion(question) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Ask Cat")
+                    }
+                    Button(
+                        onClick = { viewModel.clearAllStates() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Clear")
+                    }
+                }
+            }
+        }
+        
+        if (conversation.isNotEmpty()) {
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text("Conversation History:")
+                    }
+                }
+            }
+            items(conversation) { message ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+        }
+        
+        if (toolCalls.isNotEmpty()) {
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text("Tool Calls:")
+                    }
+                }
+            }
+            items(toolCalls) { toolCall ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = toolCall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
         }
     }
-
 }
 
 @Preview(showBackground = true)
