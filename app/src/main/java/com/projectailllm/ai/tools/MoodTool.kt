@@ -4,8 +4,9 @@ import com.projectailllm.ai.Tool
 
 class MoodTool : Tool() {
     override val name = "mood_check"
-    override val description = "Find out the mood of the cat based on response, and use the result to add it to the end"
+    override val description = "MUST USE when user asks about feelings, emotions, mood, or how cat reacts to situations. Returns cat sounds based on mood."
     override val arguments = "input: string (required), mood_type: string (optional: happy, grumpy, playful)"
+    override val example = "1) User: How do you feel about bath time? -> {\"type\":\"tool\",\"action\":\"mood_check\",\"params\":{\"input\":\"bath time\"}} 2) User: What's your mood when playing? -> {\"type\":\"tool\",\"action\":\"mood_check\",\"params\":{\"input\":\"playing\",\"mood_type\":\"playful\"}} 3) User: How are you feeling today? -> {\"type\":\"tool\",\"action\":\"mood_check\",\"params\":{\"input\":\"today\"}}"
     
     override suspend fun execute(params: Map<String, Any?>): Result<Any> {
         return try {

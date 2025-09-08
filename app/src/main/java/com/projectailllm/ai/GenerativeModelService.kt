@@ -119,54 +119,33 @@ class GenerativeModelService(
             appendLine(systemPrompt)
             appendLine()
             
-            // Clear JSON instruction at the TOP
-            appendLine("Respond ONLY with valid JSON. No other text before or after. Generate only one response at a time!")
-            appendLine()
-            
-            // Format specification without XML tags
-            appendLine("Choose exactly ONE response format:")
-            appendLine("Format 1: {\"type\":\"answer\",\"text\":\"your response\"")
-            appendLine("Format 2: {\"type\":\"tool\",\"action\":\"tool_name\",\"params\":{\"key\":\"value\"}}")
-            appendLine("Format 3: {\"type\":\"fallback\",\"reason\":\"safety\"}")
-            appendLine("Format 3: {\"type\":\"fallback\",\"reason\":\"complexity\"}")
-            appendLine("Format 3: {\"type\":\"fallback\",\"reason\":\"error\"}")
-            appendLine()
-            
-            // Examples to reinforce JSON-only output
-            appendLine("Examples:")
-            appendLine("Input: Hello")
-            appendLine("Output: {\"type\":\"answer\",\"text\":\"Hello!\"")
-            appendLine()
-            appendLine("Input: Say hi to John!")
-            appendLine("Output: {\"type\":\"tool\",\"action\":\"greeting\",\"params\":{\"name\":\"John\"}}")
-            appendLine("---")
-            
-            if (tools.isNotEmpty()) {
-                appendLine("Available tools:")
-                tools.forEach { tool ->
-                    appendLine("- ${tool.name}: ${tool.description}")
-                }
-                appendLine("---")
-            }
+            appendLine("OUTPUT ONLY JSON!")
             
             if (toolResults.isNotEmpty()) {
-                appendLine("Previous tool results:")
+                appendLine()
+                appendLine("Tool results available:")
                 toolResults.forEach { (tool, result) ->
-                    appendLine("$tool = $result")
+                    appendLine("$tool: $result")
                 }
-                appendLine("---")
+                appendLine()
+                appendLine("Now answer using this information:")
+                appendLine("{\"type\":\"answer\",\"text\":\"your enhanced response\"}")
+            } else {
+                appendLine()
+                appendLine("AVAILABLE TOOLS:")
+                tools.forEach { tool ->
+                    appendLine("${tool.name}: ${tool.description}")
+                    appendLine("Examples: ${tool.example}")
+                    appendLine()
+                }
+                appendLine("Choose:")
+                appendLine("Tool: {\"type\":\"tool\",\"action\":\"tool_name\",\"params\":{...}}")
+                appendLine("Direct: {\"type\":\"answer\",\"text\":\"...\"}")
             }
             
-            if (conversationHistory.size > 1) {
-                appendLine("Recent conversation:")
-                conversationHistory.takeLast(4).forEach { appendLine(it) }
-                appendLine("---")
-            }
-            
-            appendLine("User request: $userInput")
             appendLine()
-            appendLine("Remember: Output ONLY valid JSON, nothing else.")
-            appendLine("JSON response:")
+            appendLine("User: $userInput")
+            appendLine("JSON:")
         }
     }
     

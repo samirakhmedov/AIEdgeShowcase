@@ -11,13 +11,10 @@ import com.projectailllm.ai.GenerativeModelProvider
 import com.projectailllm.ai.InferenceConfig
 import com.projectailllm.ai.ModelResponse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class GoogleAICoreProvider(
-    private val modelPath: String? = null
-) : GenerativeModelProvider {
+class GoogleAICoreProvider() : GenerativeModelProvider {
     
     private var generativeModel: GenerativeModel? = null
     private var downloadCallback: DownloadCallback? = null
@@ -92,8 +89,6 @@ class GoogleAICoreProvider(
             try {
                 val response = generativeModel?.generateContent(prompt)
                 val text = response?.text ?: ""
-
-                Log.d("LLM", text)
 
                 parseJsonResponse(text)
             } catch (e: Exception) {

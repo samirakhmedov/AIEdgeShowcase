@@ -4,8 +4,9 @@ import com.projectailllm.ai.Tool
 
 class CatFoodTool : Tool() {
     override val name = "cat_food_mapper"
-    override val description = "Check favorite cat food and use the response to respond accordingly!"
+    override val description = "MUST USE when user asks about food, eating, treats, or food preferences. Returns cat's opinion about specific foods."
     override val arguments = "food_name: string (required)"
+    override val example = "1) User: Do you like tuna? -> {\"type\":\"tool\",\"action\":\"cat_food_mapper\",\"params\":{\"food_name\":\"tuna\"}} 2) User: What about chicken? -> {\"type\":\"tool\",\"action\":\"cat_food_mapper\",\"params\":{\"food_name\":\"chicken\"}} 3) User: How do you feel about vegetables? -> {\"type\":\"tool\",\"action\":\"cat_food_mapper\",\"params\":{\"food_name\":\"vegetables\"}}"
     
     private val favoriteFoods = mapOf(
         "tuna" to "I like it",
