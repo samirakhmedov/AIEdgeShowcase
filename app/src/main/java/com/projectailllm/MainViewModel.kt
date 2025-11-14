@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.projectailllm.ai.GenerativeModelService
 import com.projectailllm.ai.InferenceConfig
-import com.projectailllm.ai.providers.GoogleAICoreProvider
+import com.projectailllm.ai.providers.MlKitPromptProvider
 import com.projectailllm.ai.tools.CatFoodTool
 import com.projectailllm.ai.tools.GreetingTool
 import com.projectailllm.ai.tools.MoodTool
@@ -39,7 +39,7 @@ class MainViewModel : ViewModel() {
                 )
 
                 modelService = GenerativeModelService(systemPrompt, tools)
-                val provider = GoogleAICoreProvider()
+                val provider = MlKitPromptProvider()
                 modelService.setProvider(provider)
                 
                 modelService.initialize()

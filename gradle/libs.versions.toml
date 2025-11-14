@@ -1,6 +1,7 @@
 [versions]
 agp = "8.10.1"
 aicore = "0.0.1-exp01"
+genaiPrompt = "1.0.0-alpha1"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -13,6 +14,7 @@ composeBom = "2024.09.00"
 [libraries]
 aicore = { module = "com.google.ai.edge.aicore:aicore", version.ref = "aicore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "genaiPrompt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -1,11 +1,10 @@
 package com.projectailllm.ai.providers
 
-import com.google.ai.edge.aicore.DownloadConfig
-import com.google.ai.edge.aicore.DownloadCallback
-import com.google.ai.edge.aicore.GenerativeAIException
-import com.google.ai.edge.aicore.GenerativeModel
-import com.google.ai.edge.aicore.generationConfig
-import com.projectailllm.MyApplication
+import com.google.mlkit.genai.common.DownloadStatus
+import com.google.mlkit.genai.prompt.Generation
+import com.google.mlkit.genai.prompt.GenerativeModel
+import com.google.mlkit.genai.prompt.TextPart
+import com.google.mlkit.genai.prompt.generateContentRequest
 import com.projectailllm.ai.GenerativeModelProvider
 import com.projectailllm.ai.InferenceConfig
 import com.projectailllm.ai.ModelResponse
@@ -13,74 +12,61 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class GoogleAICoreProvider() : GenerativeModelProvider {
-    
+class MlKitPromptProvider() : GenerativeModelProvider {
     private var generativeModel: GenerativeModel? = null
-    private var downloadCallback: DownloadCallback? = null
-    
-    override suspend fun initialize() {}
-    
+
+    override suspend fun initialize() {
+        generativeModel = Generation.getClient()
+    }
+
     override suspend fun download(onProgress: (Float) -> Unit) {
-        val callback = object : DownloadCallback {
-            private var totalBytes: Long = 0
-            
-            override fun onDownloadStarted(bytesToDownload: Long) {
-                totalBytes = bytesToDownload
-            }
-            
-            override fun onDownloadProgress(totalBytesDownloaded: Long) {
-                if (totalBytes > 0) {
-                    val progress = totalBytesDownloaded.toFloat() / totalBytes.toFloat()
-                    onProgress(progress)
-                }
-            }
-            
-            override fun onDownloadCompleted() {
-                onProgress(1.0f)
-            }
-            
-            override fun onDownloadFailed(failureStatus: String, e: GenerativeAIException) {
-                // Handle error
-            }
-            
-            override fun onDownloadDidNotStart(e: GenerativeAIException) {
-                // Handle error
+        var totalBytes: Long = 0
+
+        generativeModel?.download()?.collect { status ->
+            when (status) {
+                is DownloadStatus.DownloadProgress ->
+                    onProgress((status.totalBytesDownloaded / totalBytes).toFloat())
+
+                is DownloadStatus.DownloadStarted -> totalBytes = status.bytesToDownload
+                else -> {}
             }
         }
-        
-        // Create model with download callback
-        val generationConfig = generationConfig {
-            context = MyApplication.appContext
-            temperature = 0.7f
-            maxOutputTokens = 2048
-            topK = 40
-        }
-        
-        val downloadConfig = DownloadConfig(callback)
-        generativeModel = GenerativeModel(
-            generationConfig = generationConfig,
-            downloadConfig = downloadConfig
-        )
     }
-    
+
     override suspend fun warmUp() {
-        generativeModel?.prepareInferenceEngine()
+       generativeModel?.warmup()
     }
-    
+
     override suspend fun sendPrompt(
         prompt: String,
         config: InferenceConfig
     ): ModelResponse {
         return withContext(Dispatchers.IO) {
             try {
-                val response = generativeModel?.generateContent(prompt)
-                val text = response?.text ?: ""
+                val response = generativeModel?.generateContent(
+                    generateContentRequest(
+                        TextPart(prompt),
+                    ) {
+                        temperature = config.temperature
+                        topK = config.topK
+                        maxOutputTokens = config.maxOutputTokens
+                    }
+                )
+
+                val text = response?.candidates[0]!!.text
 
                 parseJsonResponse(text)
             } catch (e: Exception) {
                 ModelResponse.ParseError("", "Generation failed: ${e.message}")
             }
         }
+    }
+
+
+    override suspend fun dispose() {
+        generativeModel?.clearCaches()
+        generativeModel?.close()
+        generativeModel = null
     }
 
     private fun parseJsonResponse(text: String): ModelResponse {
@@ -112,12 +98,8 @@ class GoogleAICoreProvider() : GenerativeModelProvider {
             ModelResponse.ParseError(text, "JSON parse error: ${e.message}")
         }
     }
-    
-    override suspend fun dispose() {
-        generativeModel = null
-        downloadCallback = null
-    }
-    
+
+
     private fun JSONObject.toMap(): Map<String, Any?> {
         val map = mutableMapOf<String, Any?>()
         keys().forEach { key ->
